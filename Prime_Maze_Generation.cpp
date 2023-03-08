@@ -56,8 +56,8 @@ long Prime(//成功返回1，返回-1为参数错误
 
 	//映射表（优化策略）
 	size_t *szpVctMap = nullptr;
-	long lVctMapWide;
-	long lVctMapHigh;
+	long lVctMapWide = 0;
+	long lVctMapHigh = 0;
 	if (bOptimizeStrategy)
 	{
 		//计算映射表大小

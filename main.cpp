@@ -1,5 +1,6 @@
 #include <chrono>
 #include <stdio.h>
+#include <thread>
 
 #include <Windows.h>
 #include <Bcrypt.h>
@@ -22,37 +23,57 @@ size_t RandomFunc(
 
 int main(void)
 {
-	bool *bpMap = new(std::nothrow) bool[MAPX * MAPY];
-	if (bpMap == nullptr)
-	{
-		return -2;
-	}
+	
+	
 
 	srand(1);
 	BCRYPT_ALG_HANDLE stBAH;
 	BCryptOpenAlgorithmProvider(&stBAH, L"3DES", nullptr, 0);
 
-	{
-		auto start_time = std::chrono::steady_clock::now();
+	std::thread thread1(
+		[&]()
+		{
+			bool *bpMap = new(std::nothrow) bool[MAPX * MAPY];
+			if (bpMap == nullptr)
+			{
+				return -2;
+			}
+			{
+				auto start_time = std::chrono::steady_clock::now();
 
-		Prime(bpMap, MAPX, MAPY, Prime_Point{1,1}, Prime_Point{1,1}, true);
+				long ret = Prime(bpMap, MAPX, MAPY, Prime_Point{1,1}, Prime_Point{1,1}, true);
 
-		auto end_time = std::chrono::steady_clock::now();
-		auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count() / 1000.00;
-		printf("%lfs\n", duration);
-	}
+				auto end_time = std::chrono::steady_clock::now();
+				auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count() / 1000.00;
+
+				printf("return:%ld,use:%lfs\n", ret, duration);
+			}
+			delete[] bpMap;
+		});
 	
+	std::thread thread2(
+		[&]()
+		{
+			bool *bpMap = new(std::nothrow) bool[MAPX * MAPY];
+			if (bpMap == nullptr)
+			{
+				return -2;
+			}
+			{
+				auto start_time = std::chrono::steady_clock::now();
 
-	{
-		auto start_time = std::chrono::steady_clock::now();
+				long ret = Prime(bpMap, MAPX, MAPY, Prime_Point{1,1}, Prime_Point{1,1}, false);
 
-		Prime(bpMap, MAPX, MAPY, Prime_Point{1,1}, Prime_Point{1,1}, false);
+				auto end_time = std::chrono::steady_clock::now();
+				auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count() / 1000.00;
 
-		auto end_time = std::chrono::steady_clock::now();
-		auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count() / 1000.00;
-		printf("%lfs\n", duration);
-	}
+				printf("return:%ld,use:%lfs\n", ret, duration);
+			}
+			delete[] bpMap;
+		});
 	
+	thread1.detach();
+	thread2.join();
 
 	//for (long i = 0; i < MAPX * MAPY; ++i)
 	//{
@@ -64,7 +85,7 @@ int main(void)
 	//	printf("%s", bpMap[i] == 1 ? "1," : "0,");
 	//}
 
-	delete[] bpMap;
+
 	BCryptCloseAlgorithmProvider(stBAH, 0);
 
 	return 0;
