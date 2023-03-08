@@ -1,0 +1,2 @@
+# Prime_Maze_Generation
+一个简易的Prime迷宫生成算法
